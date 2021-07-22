@@ -1,6 +1,4 @@
 const express = require("express");
-const cors = require("cors");
-const path = require("path");
 
 /**
  * -------------- GENERAL SETUP ----------------
@@ -17,13 +15,7 @@ require("./config/database");
 
 // Must first load the models
 require("./models/user");
-require("./models/orders");
 
-// Pass the global passport object into the configuration function
-// require("./config/passport")(passport);   not using it anymore using our own implementation for jwt
-
-// This will initialize the passport object on every request
-// app.use(passport.initialize());      not using it anymore using our own implementation for jwt
 
 // Instead of using body-parser middleware, use the new Express implementation of the same thing
 app.use(express.json());
