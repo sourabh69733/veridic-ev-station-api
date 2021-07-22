@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const router = require("express").Router();
 const User = mongoose.model("User");
-const Orders = mongoose.model("Orders");
 const utils = require("../lib/utils");
 const { param } = require("./admin_routes");
 const AdminSchema = mongoose.model("AdminSchema");
@@ -36,7 +35,6 @@ router.post("/register", function (req, res, next) {
         token: jwt.token,
         expiresIn: jwt.expires,
       });
-      console.log(user);
     })
     .catch((err) => next(err));
 });
@@ -44,30 +42,39 @@ router.post("/register", function (req, res, next) {
 // 
 
 // Login router
-router.post("/login", utils.authMiddleware, function (req, res, next) {
-  User.findOne({ username: req.body.username }).then((user) => {
-    if (!user) {
-      res.status(401).json({ success: false, msg: "could not get user" });
-      res.redirect("./register");
-    }
-    const isValid = utils.validPassword(
-      req.body.password,
-      user.hash,
-      user.salt
-    );
+router.post("/login",  function (req, res, next) {
+  User.findOne({ username: req.body.username })
+    .then((user) => {
+      if (!user) {
+        res.status(401).json({ success: false, msg: "could not get user" });
+        res.redirect("./register");
+      }
+      const isValid = utils.validPassword(
+        req.body.password,
+        user.hash,
+        user.salt
+      );
 
-    if (isValid) {
-      const tokenObject = utils.issueJWT(user);
+      if (isValid) {
+        const tokenObject = utils.issueJWT(user);
 
-      res.status(200).json({
-        success: true,
-        msg: "Successflly login user " + req.body.username,
-        user: user,
-        token: tokenObject.token,
-        expiresIn: tokenObject.expires,
-      });
-    }
-  });
+        return res.status(200).json({
+          success: true,
+          msg: "Successflly login user " + req.body.username,
+          user: user,
+          token: tokenObject.token,
+          expiresIn: tokenObject.expires,
+        });
+      } else {
+        return res.status(403).json({
+          success: false,
+          msg: "your password is wrong, please correct it " + req.body.username,
+        });
+      }
+
+    })
+    .catch((err) => err);
+
 });
 
 /**
@@ -87,7 +94,7 @@ router.get("/browse-products", function (req, res, next) {
     .then((item) => {
       return res.json({
         success:true,
-        products: item.products,
+        products: item,
       });
     })
     .catch((err) => res.json({ msg: "ops! something went wrong " + err }));
@@ -101,28 +108,25 @@ router.post(
     const product_id = req.body.product_id;
     const seller_id = req.body.seller_id;
 
-    ProductSchema.find().then((item) => {
-      if (item.seller_id === seller_id && item._id === product_id) {
-        User.findById(user_id).then((item) => {
-          item.orders.push({
-            product_id: product_id,
-            seller_id: seller_id,
-          });
+        User.findById(user_id)
+          .then((item) => {
+            item.orders.push({
+              product_id: product_id,
+              seller_id: seller_id,
+            });
 
-          item
-            .save()
-            .then(() =>
-              res.json({ msg: "Order placed Successfully, Thanks for order" })
-            )
-            .catch((err) =>
-              res.json({
-                msg:
-                  error_message +
-                  err,
-              })
-            );
-        })
-        .catch((err) => res.json({msg: "user " +error_message+err}))
+            item
+              .save()
+              .then(() =>
+                res.json({ msg: "Order placed Successfully, Thanks for order" })
+              )
+              .catch((err) =>
+                res.json({
+                  msg: error_message + err,
+                })
+              );
+          })
+          .catch((err) => res.json({ msg: "user " + error_message + err }));
         AdminSchema.findById(seller_id)
           .then((admin) => {
             admin.orders.push({
@@ -143,20 +147,19 @@ router.post(
                 })
               );
           })
-          .catch((err) => res.json({ msg: "admin "+error_message + err }));
+          .catch((err) => next(error_message + err ));
         return res.json({
           success: true,
-          user_id:user_id,
-          seller_id:seller_id,
+          user_id: user_id,
+          seller_id: seller_id,
           msg: "product added sucessfully",
         });
       }
-    });
-  }
 );
 
 
 router.get("/view-orders/:id", utils.authMiddleware, function (req, res, next) {
+
   const user_id = req.params.id;
   User.findById(user_id)
     .then((orders) => {

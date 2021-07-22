@@ -48,14 +48,12 @@ router.post("/register", function (req, res, next) {
 // 
 
 // Login router
-router.post("/login", utils.authMiddleware, function (req, res, next) {
+router.post("/login",  function (req, res, next) {
   AdminSchema.findOne({ adminname: req.body.adminname }).then((user) => {
     if (!user) {
-      console.log("error 1")
       return res.status(401).json({ success: false, msg: "could not get user" });
       // res.redirect("./register");
     }
-    console.log("error 2", req.body.password, user.hash, user.salt);
 
     const isValid = utils.validPassword(
       req.body.password,
@@ -65,7 +63,6 @@ router.post("/login", utils.authMiddleware, function (req, res, next) {
 
     if (isValid) {
       const tokenObject = utils.issueJWT(user);
-      console.log("error 3");
 
       res.status(200).json({
         success: true,
@@ -75,8 +72,14 @@ router.post("/login", utils.authMiddleware, function (req, res, next) {
         expiresIn: tokenObject.expires,
       });
     }
+    else {
+      res.status(403).json({
+        success: false,
+        msg: "your password is wrong, please correct it " + req.body.adminname,
+      });
+    }
   })
-  .catch((err) => err)
+  .catch((err) => next(error_message+err))
 });
 
 /**
@@ -109,12 +112,12 @@ router.post("/add/products/:id", utils.authMiddleware, function (req, res, next)
   product
     .save()
     .then((products) => {
-      res.json({
+      return res.status(200).json({
         msg: "Success Prodcut Added!",
         products: products,
       });
     })
-    .catch((err) => res.json({ msg: error_message + err }));
+    .catch((err) => next(error_message+err));
 
 });
 
@@ -122,15 +125,21 @@ router.get("/view-orders/:id", utils.authMiddleware, function (req, res, next) {
 
   const seller_id = req.params.id; // It is admin id, we get it from after login
 
-  AdminSchema.find()
+  AdminSchema.findById(seller_id)
     .then((orders) => {
-      res.json({
+      return res.json({
         success: true,
         seller_id: seller_id,
         products: orders,
       });
     })
-    .catch((err) => res.json({ msg: error_message + err }));
+    .catch((err) => next(error_message + err));
 })
 module.exports = router;
 
+/**
+  "name":"tea",
+ "price":12,
+ "links:":null,
+ "data":["it first product added to from admin sourabh admin1"]
+ */
