@@ -11,12 +11,14 @@ const UserSchema = new mongoose.Schema({
 });
 
 const AdminSchema = new mongoose.Schema({
-  account: {
-    type: String,
+  adminname: String,
+  hash: String,
+  salt: String,
+  orders: {
+    type: Array,
     required: false,
   },
-  seller_id: String,
-  
+  isAdmin:Boolean,
 });
 
 const ProductSchema = new mongoose.Schema({
