@@ -5,6 +5,12 @@
 * run local mongod server command--`mongod`
 * run `nodemon app.js` or `node app.js`
 
+```
+Please let me know if you have any problem with connecting to database and any error or bug.
+
+sourabhsahu69733@gmail.com
++91 9358337807
+```
 ## Main Functions
 
 A)
