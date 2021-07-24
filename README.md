@@ -2,14 +2,16 @@
 
 **Root url for api:**   `http://localhost:3000`
 
-* run local mongod server command--`mongod`
+* Clone the repo in local environment and make `.env` file (optional, no need for this, database deployed on mongod )
+* run `npm install`
+* <del>run local mongod server command--`mongod`</del>
+* No need to run mongo server locally, I have deployed it on mongod ATLAS cluster. Now, just run `nodemon app.js`
 * run `nodemon app.js` or `node app.js`
 
 ```
 Please let me know if you have any problem with connecting to database and any error or bug.
 
 sourabhsahu69733@gmail.com
-+91 9358337807
 ```
 ## Main Functions
 
