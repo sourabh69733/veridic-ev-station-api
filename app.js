@@ -36,7 +36,7 @@ app.use(require("./routes"));
 // Server listens on http://localhost:3000
 
 
-const port = 3000;
+port = process.env.PORT || 80;
 
 app.listen(port, () => {
   console.log(`Server is running on port: ${port}`);
