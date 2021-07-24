@@ -2,90 +2,15 @@ const mongoose = require("mongoose");
 const router = require("express").Router();
 const User = mongoose.model("User");
 const utils = require("../lib/utils");
-const { param } = require("./admin_routes");
 const AdminSchema = mongoose.model("AdminSchema");
 const ProductSchema = mongoose.model("ProductSchema");
 
-
-// Error message is common 
-const error_message =
-  "There is problem with user id, please try again or we will let you know problem and solve it immedialty ";
-// Regrister route 
-router.post("/register", function (req, res, next) {
-  const saltHash = utils.genPassword(req.body.password);
-
-  const salt = saltHash.salt;
-  const hash = saltHash.hash;
-
-  const newUser = new User({
-    username: req.body.username,
-    hash: hash,
-    salt: salt,
-  });
-
-  newUser
-    .save()
-    .then((user) => {
-      const id = user._id;
-      const jwt = utils.issueJWT(user);
-
-      res.json({
-        success: true,
-        user: user,
-        token: jwt.token,
-        expiresIn: jwt.expires,
-      });
-    })
-    .catch((err) => next(err));
-});
-
-// 
-
-// Login router
-router.post("/login",  function (req, res, next) {
-  User.findOne({ username: req.body.username })
-    .then((user) => {
-      if (!user) {
-        res.status(401).json({ success: false, msg: "could not get user" });
-        res.redirect("./register");
-      }
-      const isValid = utils.validPassword(
-        req.body.password,
-        user.hash,
-        user.salt
-      );
-
-      if (isValid) {
-        const tokenObject = utils.issueJWT(user);
-
-        return res.status(200).json({
-          success: true,
-          msg: "Successflly login user " + req.body.username,
-          user: user,
-          token: tokenObject.token,
-          expiresIn: tokenObject.expires,
-        });
-      } else {
-        return res.status(403).json({
-          success: false,
-          msg: "your password is wrong, please correct it " + req.body.username,
-        });
-      }
-
-    })
-    .catch((err) => err);
-
-});
-
-/**
- * Logout route, only authenticated user can logout
- */
-router.get("/logout", utils.authMiddleware, (req, res, next) => {
-  req.logout();
-});
+const error_message = `There may be problems with bearer token or user id or password or username. 
+  It could be due to server, please try again and email us. `;
 
 
 /**
+* @params no authentication required
  * Browse all available products from all sellers, login do not require 
  */
 router.get("/browse-products", function (req, res, next) {
@@ -99,7 +24,12 @@ router.get("/browse-products", function (req, res, next) {
     })
     .catch((err) => res.json({ msg: "ops! something went wrong " + err }));
 });
-
+// 60fc4b331f58ff12282add03
+/**
+ * authorization required
+ * @param product id, seller id and user id
+ * @returns made order for user
+ */
 router.post(
   "/order-product/:id",
   utils.authMiddleware,
@@ -126,7 +56,7 @@ router.post(
                 })
               );
           })
-          .catch((err) => res.json({ msg: "user " + error_message + err }));
+          .catch((err) => next(error_message + err ));
         AdminSchema.findById(seller_id)
           .then((admin) => {
             admin.orders.push({
@@ -158,18 +88,30 @@ router.post(
 );
 
 
+/**
+ * only autheticated user allowed
+ * @params user id
+ * @returns orders made by user
+ * 
+ */
 router.get("/view-orders/:id", utils.authMiddleware, function (req, res, next) {
 
   const user_id = req.params.id;
   User.findById(user_id)
-    .then((orders) => {
-      res.json({
+    .then((user) => {
+      if(!user){
+        return res.json({
+          success:false,
+          msg:"user id is invalid"
+        })
+      }
+      return res.json({
         msg: "Successfully fetched user orders",
-        orders: orders,
+        orders: user.orders,
       });
     })
     .catch((err) => {
-      res.json({
+      return res.json({
         msg: "failed, there is no user exist with pass ID " + err,
       });
     });
