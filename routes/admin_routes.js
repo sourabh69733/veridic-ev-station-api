@@ -49,7 +49,7 @@ router.post("/add/products/:id", utils.authMiddleware, function (req, res, next)
 
 router.get("/view-products/:id", utils.authMiddleware, function (req,res, next) {
 
-  ProductSchema.find()
+  ProductSchema.findById(req.params.id)
     .then((product) =>
       res.status(200).json({
         product_id: product.map((item) => item._id),
