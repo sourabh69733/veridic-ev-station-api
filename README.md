@@ -61,7 +61,7 @@ RSA algorithm is asymmetric cryptography algorithm. Asymmetric actually means th
 ## API and main functions
 
 | API end point  | (REQUEST) main funtion | (jwt token at request header) Authetication required or not  |
-| ------|-------|
+| ------ |------- | ----- |
 | api/auth/register       | (POST) It can handle users and admin register, issuesing JWT token on success, storing username, hash and salt. `username`, `password` and `isAdmin` are sent with request body and required.   | NO |
 | api/auth/login     | (POST) It can handle users and admin login, generating hash and matching that with stored hash. `username`, `password` and `isAdmin` are sent with request body and required.  | NO |
 | api/auth/reset-password/authenticate/:id |  (POST) Here `id` is user or admin id, current password and new password are sent with request body. Reset user or admin password, validated then generated new hash and salt for new password. | YES|
