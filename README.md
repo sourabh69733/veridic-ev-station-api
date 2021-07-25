@@ -48,7 +48,8 @@ For End Customers
 
 *   routes  --middleware for handling all api's   
 ---index.js
----users_routes_routes.js
+---users_routes.js
+---auth_routes.js
 ---admin_routes.js
 
 *   app.js   --server connection on given port and main interference for express and mongodb database.
@@ -57,11 +58,30 @@ For End Customers
 RSA algorithm is asymmetric cryptography algorithm. Asymmetric actually means that it works on two different keys i.e. Public Key and Private Key
 
 
+## API and main functions
+
+| API end point  | (REQUEST) main funtion | (jwt token at request header) Authetication required or not  |
+| ------|-------|
+| api/auth/register       | (POST) It can handle users and admin register, issuesing JWT token on success, storing username, hash and salt. `username`, `password` and `isAdmin` are sent with request body and required.   | NO |
+| api/auth/login     | (POST) It can handle users and admin login, generating hash and matching that with stored hash. `username`, `password` and `isAdmin` are sent with request body and required.  | NO |
+| api/auth/reset-password/authenticate/:id |  (POST) Here `id` is user or admin id, current password and new password are sent with request body. Reset user or admin password, validated then generated new hash and salt for new password. | YES|
+| api/auth/reset-username/authenticate/:id |  (POST) Here `id` is user or admin id, new username and current password are sent with request body. Reset user or admin username or adminname, validated then set new username or adminname. | YES |
+| /api/users/order-product/:id     | (POST) Here `id` is user id and product id, seller id are sent with request to place order.   | YES |
+| api/users/view-orders/:id      | (GET) Here `id` is user id     | YES |
+| /api/users/browse-products    | (GET) Get all products uploaded by all sellers. No authorization needed    | NO |
+| /api/admin/add/products/:id       | (POST) Here `id` is seller id (admin id). Products details sent with request body.     | YES |
+| /api/admin/view-orders/:id      | (GET) Here `id` is seller id (admin id). Returns all orders made by users for seller id products.   | YES |
+| /api/admin/view-products/:id | (GET) Here `id` is seller id (admin id). Returns all products uploaded by seller id (admin).     | YES |
+
 ## API testing Responses
 
-### FOR USER
+*There are three main API endpoints `api/auth` for handling user and admin authorization, `api/users` for handling all api endpoints for users
+, `api/admin` for handling all api endpoints for admin.*
 
-*POST*  **/api/users/register/** 
+
+### FOR AUTHORIZATION (USERS AND ADMIN)
+
+*POST*  **/api/auth/register/** 
 ```
 {
     "success": true,
@@ -79,7 +99,7 @@ RSA algorithm is asymmetric cryptography algorithm. Asymmetric actually means th
 }
 ```
 
-*POST* **/api/users/login/** 
+*POST* **/api/auth/login/** 
 ```
 {
     "success": true,
@@ -96,6 +116,27 @@ RSA algorithm is asymmetric cryptography algorithm. Asymmetric actually means th
     "expiresIn": "5d"
 }
 ```
+```
+{
+    "success": true,
+    "msg": "Successflly login admin Sourabh admin1",
+    "adminname": {
+        "orders": [],
+        "_id": "60f9bb520c1d1e167c8cbdf4",
+        "adminname": "Sourabh admin1",
+        "hash": "16a140c75e7654c1e4ed60245d8c1ad9c341dd213204d0060e55e011ef08bcb134a992fd9146793ab06a398691cb897005c66bf6f4182f3a8ac0663eceaa94b3",
+        "salt": "bae58fad746a9a93d67f11413100ac13b831a0ffc66813328315112725f4a32f",
+        "isAdmin": true,
+        "__v": 0
+    },
+    "token": "Bearer 
+    eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2MGY5YmI1MjBjMWQxZTE2N2M4Y2JkZjQiLCJpYXQiOjE2MjY5NzkxODgyMTUsImV4cCI6MTYyNjk3OTYyMDIxNX0.Pkw0BI9Ug52zkKpTXQ4a7BXGFX_-vLKrQ5pQhki0sf2tDeLJhu0Kc88wuajuYAZ5xEPQwnMQYwbWbdx6W2sJsqgZ59StJVPOKb59trGqFVnUHZQz8vDGmoiQGAQpn4y21mBlOAmE4QMmnXweTCiq-VBmdVhMgkhOZE0cc7eWcS_BIUHILLNEsrTwVmduX_XfctL0Qa1fAeHoobqeU_3QOgzvO2DZtvFJcAGsL5BnPFZJUdf--taJs9tDQeislBrLB0AftzcsWcREVHcTE8D4e6FVtHJQwK30wIFrE332XO-RXbXHIL23DPGXXe8DPqJGEeokiweZ1-BKv-5Fvrmkz__ZZ4fNqyTUf0ZWdZsdGh4yd0xg5sAQxWrDDmuoCatXziAqE4uEmL0c78VCmqgXWxo_q44xMvzXsKoH7XetENEye_12V2KFZuuoJDN8mvRKdn_IW-nCaTFkb8xHW1K9l0zOjLfpiSZBGrgIPDDiYLU14UJkqUytuLot6hKsOBiI57luaBjSyFDcDDADV2yZavIuWyB1yMXDfWlpp3TQJAkIyHiKYia3JgXMDzqsfnzjUG_ZhJQTnyVmfQYeoUIDTJPJ8PjhVKquIT6GBrmB8UVUBB1HeMRt8bw01oFAIOUjBPhqfYzgYKPYygyzA_E4c_5zVmPdr7tidrCD0C9Ahho",
+    "expiresIn": "5d"
+}
+```
+
+
+### FOR USERS
 
 *POST* **/api/users/order-product/:id**
 ```
@@ -153,44 +194,6 @@ RSA algorithm is asymmetric cryptography algorithm. Asymmetric actually means th
 ```
 ### FOR ADMIN
 
-*POST* **/api/admin/register/**
-
-```
-{
-    "success": true,
-    "admin": {
-        "orders": [],
-        "_id": "60f9bb520c1d1e167c8cbdf4",
-        "hash": "16a140c75e7654c1e4ed60245d8c1ad9c341dd213204d0060e55e011ef08bcb134a992fd9146793ab06a398691cb897005c66bf6f4182f3a8ac0663eceaa94b3",
-        "salt": "bae58fad746a9a93d67f11413100ac13b831a0ffc66813328315112725f4a32f",
-
-        "__v": 0
-    },
-    "token": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9eyJzdWIiOiI2MGY5YmI1MjBjMWQxZTE2N2M4Y2JkZjQiLCJpYXQiOjE2MjY5NzkxODgyMTUsImV4cCI6MTYyNjk3OTYyMDIxNX0Pkw0BI9Ug52zkKpTXQ4a7BXGFX_-vLKrQ5pQhki0sf2tDeLJhu0Kc88wuajuYAZ5xEPQwnMQYwbWbdx6W2sJsqgZ59StJVPOKb59trGqFVnUHZQz8vDGmoiQGAQpn4y21mBlOAmE4QmnXweTCiq-VBmdVhMgkhOZE0cc7eWcS_BIUHILLNEsrTwVmduX_XfctL0Qa1fAeHoobqeU_3QOgzvO2DZtvFJcAGsL5BnPFZJUdf--taJs9tDQeislBrLB0AftzcsWcREVHcTE8D4eFVtHJQwK30wIFrE332XO-RXbXHIL23DPGXXe8DPqJGEeokiweZ1-BKv-5Fvrmkz__ZZ4fNqyTUf0ZWdZsdGh4yd0xg5sAQxWrDDmuoCatXziAqE4uEmL0c78VCmqgXWxo_q44xMvzXKoH7XetENEye_12V2KFZuuoJDN8mvRKdn_IW-nCaTFkb8xHW1K9l0zOjLfpiSZBGrgIPDDiYLU14UJkqUytuLot6hKsOBiI57luaBjSyFDcDDADV2yZavIuWyB1yMXDfWlpp3TQJAkyHiKYia3JgXMDzqsfnzjUG_ZhJQTnyVmfQYeoUIDTJPJ8PjhVKquIT6GBrmB8UVUBB1HeMRt8bw01oFAIOUjBPhqfYzgYKPYygyzA_E4c_5zVmPdr7tidrCD0C9Ahho",
-    "expiresIn": "5d"
-
-}
-```
-*POST* **/api/admin/login/**
-
-```
-{
-    "success": true,
-    "msg": "Successflly login admin Sourabh admin1",
-    "adminname": {
-        "orders": [],
-        "_id": "60f9bb520c1d1e167c8cbdf4",
-        "adminname": "Sourabh admin1",
-        "hash": "16a140c75e7654c1e4ed60245d8c1ad9c341dd213204d0060e55e011ef08bcb134a992fd9146793ab06a398691cb897005c66bf6f4182f3a8ac0663eceaa94b3",
-        "salt": "bae58fad746a9a93d67f11413100ac13b831a0ffc66813328315112725f4a32f",
-        "isAdmin": true,
-        "__v": 0
-    },
-    "token": "Bearer 
-    eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2MGY5YmI1MjBjMWQxZTE2N2M4Y2JkZjQiLCJpYXQiOjE2MjY5NzkxODgyMTUsImV4cCI6MTYyNjk3OTYyMDIxNX0.Pkw0BI9Ug52zkKpTXQ4a7BXGFX_-vLKrQ5pQhki0sf2tDeLJhu0Kc88wuajuYAZ5xEPQwnMQYwbWbdx6W2sJsqgZ59StJVPOKb59trGqFVnUHZQz8vDGmoiQGAQpn4y21mBlOAmE4QMmnXweTCiq-VBmdVhMgkhOZE0cc7eWcS_BIUHILLNEsrTwVmduX_XfctL0Qa1fAeHoobqeU_3QOgzvO2DZtvFJcAGsL5BnPFZJUdf--taJs9tDQeislBrLB0AftzcsWcREVHcTE8D4e6FVtHJQwK30wIFrE332XO-RXbXHIL23DPGXXe8DPqJGEeokiweZ1-BKv-5Fvrmkz__ZZ4fNqyTUf0ZWdZsdGh4yd0xg5sAQxWrDDmuoCatXziAqE4uEmL0c78VCmqgXWxo_q44xMvzXsKoH7XetENEye_12V2KFZuuoJDN8mvRKdn_IW-nCaTFkb8xHW1K9l0zOjLfpiSZBGrgIPDDiYLU14UJkqUytuLot6hKsOBiI57luaBjSyFDcDDADV2yZavIuWyB1yMXDfWlpp3TQJAkIyHiKYia3JgXMDzqsfnzjUG_ZhJQTnyVmfQYeoUIDTJPJ8PjhVKquIT6GBrmB8UVUBB1HeMRt8bw01oFAIOUjBPhqfYzgYKPYygyzA_E4c_5zVmPdr7tidrCD0C9Ahho",
-    "expiresIn": "5d"
-}
-```
 
 *POST* **/api/admin/add/products/:id**
 ```
